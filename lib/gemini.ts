@@ -1,3 +1,9 @@
+// File: lib/gemini.ts
+import { GoogleGenerativeAI } from '@google/generative-ai'
+
+const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '')
+
+// Custom planner for N days
 export async function generateCustomTasksFromGoal(goal: string, days: number): Promise<string[]> {
   const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
 
@@ -9,7 +15,10 @@ Return only that list.`
 
   const result = await model.generateContent(prompt)
   const text = await result.response.text()
-  const lines = text.split('\n').filter((line: string) => line.includes('Day'))
+  const lines = text.split('\n').filter((line) => line.includes('Day'))
 
-  return lines.map((line: string) => line.replace(/^\- /, '').trim())
+  return lines.map((line) => line.replace(/^\- /, '').trim())
 }
+
+// Chat model if needed elsewhere
+export { genAI }
