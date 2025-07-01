@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { genAI } from '@/lib/gemini'
+import genAI from '@/lib/gemini'
 
 export default function ChatPage() {
   const [message, setMessage] = useState('')

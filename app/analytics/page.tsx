@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabaseClient'
 
 export default function AnalyticsPage() {
   const [taskStats, setTaskStats] = useState({ done: 0, todo: 0 })
-  const [dailyData, setDailyData] = useState([])
+  const [dailyData, setDailyData] = useState<{ date: string; completed: number }[]>([])
 
   useEffect(() => {
     const fetchAnalytics = async () => {
