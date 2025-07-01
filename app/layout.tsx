@@ -2,6 +2,7 @@ import './globals.css'
 import { ReactNode } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import Navbar from '@/components/global/Navbar'
 
 export const metadata = {
   title: 'SkillSprint',
@@ -13,6 +14,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body className="min-h-screen bg-gray-50 text-gray-900">
         <div className="flex">
+            <head>
+  <title>SkillSprint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Plan and track your learning goals with AI" />
+  <link rel="icon" href="/favicon.ico" />
+</head>
           {/* Sidebar */}
           <aside className="w-64 bg-white shadow h-screen p-6 hidden md:block">
             <h1 className="text-2xl font-bold mb-6">🏃 SkillSprint</h1>
@@ -46,3 +53,5 @@ function NavItem({ href, children }: { href: string; children: ReactNode }) {
     </Link>
   )
 }
+<Navbar />
+
