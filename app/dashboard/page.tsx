@@ -1,80 +1,93 @@
-// File: app/dashboard/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
-interface Task {
+type Task = {
   id: string
   day: number
   content: string
-  status: string
+  status: 'todo' | 'done'
 }
 
-export default function DashboardPage() {
+export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchTasks = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) return
 
-      const { data: goals } = await supabase
+      const { data, error } = await supabase
         .from('learning_goals')
         .select('id')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
+        .single()
 
-      if (!goals || goals.length === 0) return
+      if (!data) return
 
-      const { data: tasksData } = await supabase
+      const { data: taskData } = await supabase
         .from('tasks')
         .select('*')
-        .eq('goal_id', goals[0].id)
-        .order('day')
+        .eq('goal_id', data.id)
+        .order('day', { ascending: true })
 
-      setTasks(tasksData || [])
+      setTasks(taskData || [])
       setLoading(false)
     }
 
     fetchTasks()
   }, [])
 
-  const toggleTask = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'todo' ? 'done' : 'todo'
-    await supabase.from('tasks').update({ status: newStatus }).eq('id', id)
+  const toggleStatus = async (id: string, status: 'todo' | 'done') => {
+    const newStatus = status === 'todo' ? 'done' : 'todo'
     setTasks((prev) =>
       prev.map((task) =>
         task.id === id ? { ...task, status: newStatus } : task
       )
     )
+    await supabase.from('tasks').update({ status: newStatus }).eq('id', id)
   }
 
-  if (loading) return <p className="text-center mt-10">Loading...</p>
-
   return (
-    <div className="max-w-xl mx-auto p-4">
-      <h1 className="text-3xl font-bold text-center mb-6">📘 Your Learning Tasks</h1>
-      <ul className="space-y-3">
+    <div className="max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6 text-center">📅 Daily Task Board</h1>
+
+      {loading && <p className="text-center">Loading...</p>}
+
+      <div className="grid gap-4">
         {tasks.map((task) => (
-          <li
+          <Card
             key={task.id}
-            className={`p-4 rounded border cursor-pointer flex items-start justify-between ${
-              task.status === 'done' ? 'bg-green-100 line-through' : 'bg-white'
-            }`}
-            onClick={() => toggleTask(task.id, task.status)}
+            className={cn(
+              'transition-all duration-300 shadow-sm',
+              task.status === 'done' && 'opacity-70 bg-green-50'
+            )}
           >
-            <div>
-              <strong>Day {task.day}:</strong> {task.content}
-            </div>
-            <span className="text-xs text-gray-500">[{task.status}]</span>
-          </li>
+            <CardContent className="py-4 px-6 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Day {task.day}</p>
+                <p className="font-medium">{task.content}</p>
+              </div>
+
+              <Button
+                variant={task.status === 'done' ? 'outline' : 'default'}
+                onClick={() => toggleStatus(task.id, task.status)}
+              >
+                {task.status === 'done' ? 'Undo' : 'Mark Done ✅'}
+              </Button>
+            </CardContent>
+          </Card>
         ))}
-      </ul>
+      </div>
     </div>
   )
 }
